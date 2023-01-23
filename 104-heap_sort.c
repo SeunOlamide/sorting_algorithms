@@ -1,78 +1,131 @@
-/*
- * File: 104-heap_sort.c
- */
-
 #include "sort.h"
 
-void swap_ints(int *a, int *b);
-void max_heapify(int *array, size_t size, size_t base, size_t root);
-void heap_sort(int *array, size_t size);
-
 /**
- * swap_ints - Swap two integers in an array.
- * @a: The first integer to swap.
- * @b: The second integer to swap.
+ * parent - find parent element of given element
+ * @i: element to find parent element of
+ *
+ * Return: parent element (int)
  */
-void swap_ints(int *a, int *b)
+int parent(int i)
 {
-	int tmp;
-
-	tmp = *a;
-	*a = *b;
-	*b = tmp;
+	return ((i - 1) / 2);
 }
 
 /**
- * max_heapify - Turn a binary tree into a complete binary heap.
- * @array: An array of integers representing a binary tree.
- * @size: The size of the array/tree.
- * @base: The index of the base row of the tree.
- * @root: The root node of the binary tree.
+ * left_child - find left child element of given element
+ * @i: element to find left child of
+ *
+ * Return: left child element (int)
  */
-void max_heapify(int *array, size_t size, size_t base, size_t root)
+int left_child(int i)
 {
-	size_t left, right, large;
+	return ((2 * i) + 1);
+}
 
-	left = 2 * root + 1;
-	right = 2 * root + 2;
-	large = root;
+/**
+ * sift_down - repair heap to ensure each parent node is greater than its child
+ * @array: array on which the heap neads to be repaired
+ * @start: root position of the heap
+ * @end: last element in the heap
+ * @size: size of the array
+ *
+ * Return: no return value (void)
+ */
+void sift_down(int *array, int start, int end, size_t size)
+{
+	int root = start, l_child, r_child, swap, temp;
 
-	if (left < base && array[left] > array[large])
-		large = left;
-	if (right < base && array[right] > array[large])
-		large = right;
-
-	if (large != root)
+	while (left_child(root) <= end)
 	{
-		swap_ints(array + root, array + large);
-		print_array(array, size);
-		max_heapify(array, size, base, large);
+		l_child = left_child(root);
+		r_child = l_child + 1;
+		swap = root;
+
+/*
+ * Check whether parent is less than left child
+*/
+		if (array[swap] < array[l_child])
+			swap = l_child;
+/*
+ * Check whether parent is less than right child
+*/
+		if (r_child <= end && array[swap] < array[r_child])
+			swap = r_child;
+/*
+ * Perform swap if needed, else return
+*/
+		if (swap == root)
+		{
+			return;
+		}
+		else
+		{
+			temp = array[root];
+			array[root] = array[swap];
+			array[swap] = temp;
+			print_array(array, size);
+			root = swap;
+		}
 	}
 }
 
 /**
- * heap_sort - Sort an array of integers in ascending
- *             order using the heap sort algorithm.
- * @array: An array of integers.
- * @size: The size of the array.
+ * heapify - put elements of array in heap order, in-place
+ * @array: pointer to array to be heapified
+ * @size: size of the array
  *
- * Description: Implements the sift-down heap sort
- * algorithm. Prints the array after each swap.
+ * Return: no return value (void)
+ */
+void heapify(int *array, size_t size)
+{
+/*
+ * start is assigned the index in array of the last parent node i.e. the parent
+ * of the last element in the array
+*/
+	int start = parent(size - 1);
+
+	while (start >= 0)
+	{
+		sift_down(array, start, size - 1, size);
+		start -= 1;
+	}
+}
+
+/**
+ * heap_sort - sort an array of integers in ascending order using heap sort
+ * @array: pointer to array to be sorted
+ * @size: size of array
+ *
+ * Return: no return value (void)
  */
 void heap_sort(int *array, size_t size)
 {
-	int i;
+	int end = size - 1, temp;
 
-	if (array == NULL || size < 2)
-		return;
+/*
+ * Build the heap in array so that largest value is at the root
+*/
+	heapify(array, size);
 
-	for (i = (size / 2) - 1; i >= 0; i--)
-		max_heapify(array, size, size, i);
-
-	for (i = size - 1; i > 0; i--)
+/*
+ * In the following loop, array[0:end] is a heap and
+ * array[end:size] is in sorted order
+*/
+	while (end > 0)
 	{
-		swap_ints(array, array + i);
+/*
+ * array[0] is the root and is the largest element.
+ * swap array[end] and array[0]
+ */
+		temp = array[end];
+		array[end] = array[0];
+		array[0] = temp;
 		print_array(array, size);
-		max_heapify(array, size, i, 0);
+		end -= 1;
+/*
+ * after each swap, heap size reduces so reduce end by 1
+ * swap ruined the heap property, soo restore it suing siftdown function
+*/
+		sift_down(array, 0, end, size);
 	}
 }
